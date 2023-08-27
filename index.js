@@ -35,6 +35,15 @@ async function run() {
 
 /*  All Route Start From Here */
 
+//get user by email
+app.get('/user/:email', async(req, res)=>{
+  const email = req.params.email;
+  const query = {email: email}
+  console.log(query)
+  const result = await userCollection.findOne(query)
+  res.send(result)
+
+})
 
     //Save user to DB
     app.put('/user/:email', async (req, res) => {
@@ -58,7 +67,7 @@ async function run() {
     res.send(result)
   })
     
-
+//ALL CARS GET, POST, PUT, DELETE START FROM HERE
 
   app.get('/categories', async(req, res)=>{
     const query = {}
@@ -113,6 +122,14 @@ async function run() {
     res.send(result)
   })
 
+
+
+
+  // HOST INFO START FROM HERE
+  // app.post('/host-request', async(req, res) =>{
+  //   const sellerRequest = req.body; 
+  //   const 
+  // })
 
 
 
