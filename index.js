@@ -30,6 +30,7 @@ async function run() {
     const toyotaCollection = client.db("usedCar").collection("toyota")
     const hondaCollection = client.db("usedCar").collection("honda")
     const carsCollection = client.db("usedCar").collection("cars")
+    const reconditionCategory = client.db("usedCar").collection("category") 
 
 
 
@@ -68,6 +69,13 @@ app.get('/user/:email', async(req, res)=>{
   })
     
 //ALL CARS GET, POST, PUT, DELETE START FROM HERE
+
+  app.get('/usedCarCategory', async(req, res)=>{
+    const query = {}
+    const result = await reconditionCategory.find(query).toArray();
+    res.send(result)
+  })
+
 
   app.get('/categories', async(req, res)=>{
     const query = {}
@@ -121,6 +129,18 @@ app.get('/user/:email', async(req, res)=>{
     const result = await cursor.toArray()
     res.send(result)
   })
+
+
+   //get All recondition category cars
+
+   app.get('/category/:id', async (req, res) =>{
+    const id = req.params.id;
+    const filter = {brand_id:{$eq: id}}
+    const result = await carsCollection.find(filter).toArray()
+    res.send(result)
+   })
+
+
 
 
 
