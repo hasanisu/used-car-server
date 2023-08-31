@@ -40,7 +40,6 @@ async function run() {
 app.get('/user/:email', async(req, res)=>{
   const email = req.params.email;
   const query = {email: email}
-  console.log(query)
   const result = await userCollection.findOne(query)
   res.send(result)
 
@@ -64,7 +63,7 @@ app.get('/user/:email', async(req, res)=>{
     // })
     // res.send({ result, token })
 
-    console.log(result,'result')
+  
     res.send(result)
   })
     
@@ -138,6 +137,17 @@ app.get('/user/:email', async(req, res)=>{
     const filter = {brand_id:{$eq: id}}
     const result = await carsCollection.find(filter).toArray()
     res.send(result)
+   })
+
+
+
+
+   app.post('/all-car', async(req, res) =>{
+    const car = req.body;
+    const result = await carsCollection.insertOne(car)
+    console.log(result)
+    res.send(result)
+     
    })
 
 
