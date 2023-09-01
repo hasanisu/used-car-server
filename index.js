@@ -140,8 +140,6 @@ app.get('/user/:email', async(req, res)=>{
    })
 
 
-
-
    app.post('/all-car', async(req, res) =>{
     const car = req.body;
     const result = await carsCollection.insertOne(car)
@@ -149,6 +147,14 @@ app.get('/user/:email', async(req, res)=>{
     res.send(result)
      
    })
+
+   //get data by Seller email 
+   app.get('/post-cars', async(req, res)=>{
+    const email = req.query.email;
+    const query = {'seller.email': email}
+    const result = await carsCollection.find(query).toArray()
+    res.send(result)
+   }) 
 
 
 
