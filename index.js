@@ -114,7 +114,7 @@ app.get('/user/:email', async(req, res)=>{
 
   //Get All New arrival 2023 cars 
   app.get('/new-arrivals', async(req, res) =>{
-    const query = { arrival_year :{$eq : '2023' }}
+    const query = { productionYear :{$eq : 2023 }}
     const cursor = carsCollection.find(query) 
     const result = await cursor.toArray()
     res.send(result)
