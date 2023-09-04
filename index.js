@@ -162,28 +162,26 @@ async function run() {
 
 
     // get user carts list 
-    app.get('/carts')
+    app.get('/carts', async (req, res)=>{
+      const email = req.query.email;
+      const query = {email:email}
+      const result = await cartsCollection.find(query).toArray()
+      res.send(result)
+    })
 
 
 
     //Add user carts list
-    app.put('/carts/:id', async (req, res) => {
-      const id = req.params.id;
+    app.post('/carts', async (req, res) => {
       const item = req.body;
-      const filter = { _id: id }
-      const options = { upsert: true }
-      const docUpdate = {
-        $set: item
-      }
-      const result = await cartsCollection.insertOne(filter,docUpdate, options )
+      const result = await cartsCollection.insertOne(item)
       res.send(result)
     })
 
     // delete user carts list
     app.delete('/carts/:id', async (req, res) => {
       const id = req.params.id;
-      console.log('checked', id)
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: id }
       console.log(query)
       const result = await cartsCollection.deleteOne(query);
       console.log(result)
