@@ -4,11 +4,33 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const cors = require('cors')
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 //middleware
 app.use(cors())
 app.use(express.json())
+
+//JWT
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: 'unathorized access' })
+  }
+  const token = authHeader.split(' ')[1]
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: 'Foriddend access' })
+    }
+    console.log(decoded)
+    req.decoded = decoded
+    next()
+  })
+}
+
+
+
+
 
 //mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.dkggbgt.mongodb.net/?retryWrites=true&w=majority`;
@@ -37,7 +59,30 @@ async function run() {
 
 
 
-    /*  All Route Start From Here */
+
+      //Verify Admin
+      const verifyAdmin = async (req, res, next) => {
+        const decodedEmail = req.decoded.email;
+        const query = { email: decodedEmail }
+        const user = await userCollection.findOne(query);
+        if (user?.role !== 'admin') {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+        next()
+      }
+
+    /*  
+    .......................................
+    All Route Start From Here 
+    .......................................
+    */
+
+    //Get All user for Admin
+      app.get('/users', verifyJWT, verifyAdmin, async(req, res)=>{
+        const query ={}
+        const users = await userCollection.find(query).toArray()
+        res.send(users)
+      })
 
     //get user by email
     app.get('/user/:email', async (req, res) => {
@@ -51,23 +96,19 @@ async function run() {
     //Save user to DB
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
-      console.log(email)
       const user = req.body;
       const filter = { email: email }
       const options = { upsert: true }
-
       const docUpdate = {
         $set: user
       }
       const result = await userCollection.updateOne(filter, docUpdate, options)
 
-      // const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
-      //   expiresIn: '1d'
-      // })
-      // res.send({ result, token })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+        expiresIn: '1d'
+      })
+      res.send({ result, token })
 
-
-      res.send(result)
     })
 
     //ALL CARS GET, POST, PUT, DELETE START FROM HERE
@@ -178,10 +219,11 @@ async function run() {
       res.send(result)
     })
 
+
     // delete user carts list
     app.delete('/carts/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: id }
+      const query = { _id: new ObjectId(id) }
       console.log(query)
       const result = await cartsCollection.deleteOne(query);
       console.log(result)
