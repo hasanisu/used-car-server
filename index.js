@@ -22,7 +22,6 @@ function verifyJWT(req, res, next) {
     if (err) {
       return res.status(403).send({ message: 'Foriddend access' })
     }
-    console.log(decoded)
     req.decoded = decoded
     next()
   })
@@ -127,6 +126,13 @@ async function run() {
     })
 
 
+    //Get All cars by condition
+    app.get('/all-car', async (req, res) => {
+      const query = {productStatus: {$eq:'add-in-house'}}
+      const result = await carsCollection.find(query).toArray()
+      res.send(result)
+    })
+
 
     //Get All cars by id 
     app.get('/all-car/:id', async (req, res) => {
@@ -175,7 +181,6 @@ async function run() {
 
 
     //get All recondition category cars
-
     app.get('/category/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { brand_id: { $eq: id } }
@@ -187,12 +192,28 @@ async function run() {
     app.post('/all-car', async (req, res) => {
       const car = req.body;
       const result = await carsCollection.insertOne(car)
-      console.log(result)
       res.send(result)
 
     })
 
-    //get data by Seller email 
+// update product 
+    app.patch('/all-car/:id', async(req, res)=>{
+      const id = req.params.id;
+      console.log(id)
+      const status = req.body.productStatus;
+      const filter = { _id: new ObjectId(id)}
+      const options = {upsert : true}
+      const docUpdate = {
+        $set: {
+          productStatus:status
+        }
+      }
+      const result = await carsCollection.updateOne(filter, docUpdate, options)
+      res.send(result)
+
+    })
+
+    //get products by Seller email 
     app.get('/post-cars', async (req, res) => {
       const email = req.query.email;
       const query = { 'seller.email': email }
@@ -224,9 +245,7 @@ async function run() {
     app.delete('/carts/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
-      console.log(query)
       const result = await cartsCollection.deleteOne(query);
-      console.log(result)
       res.send(result)
     })
 
