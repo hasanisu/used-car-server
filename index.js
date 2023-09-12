@@ -15,12 +15,12 @@ app.use(express.json())
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).send({ message: 'unathorized access' })
+    return res.status(401).send({ message: 'unauthorized access' })
   }
   const token = authHeader.split(' ')[1]
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
     if (err) {
-      return res.status(403).send({ message: 'Foriddend access' })
+      return res.status(403).send({ message: 'Forbidden access' })
     }
     req.decoded = decoded
     next()
@@ -83,9 +83,33 @@ async function run() {
         res.send(users)
       })
 
+
+    //get All seller for Admin
+    app.get('/sellers',verifyJWT, verifyAdmin, async(req, res)=>{
+      const query = { role: { $eq: 'seller' } }
+      const users = await userCollection.find(query).toArray()
+      res.send(users)
+    })
+
+
+
+    //get All seller for Admin
+    app.get('/buyers',verifyJWT, verifyAdmin, async(req, res)=>{
+      const query = { role: { $eq: 'buyer' } }
+      const users = await userCollection.find(query).toArray()
+      res.send(users)
+    })
+
+
     //get user by email
-    app.get('/user/:email', async (req, res) => {
+    app.get('/user/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
+      console.log('check', email)
+      const decodedEmail = req.decoded.email;
+      console.log('cehck1', decodedEmail)
+      if(email !== decodedEmail){
+        return res.status(403).send({message: 'forbidden access'})
+      }
       const query = { email: email }
       const result = await userCollection.findOne(query)
       res.send(result)
