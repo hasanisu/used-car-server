@@ -117,7 +117,7 @@ async function run() {
     })
 
     //Save user to DB
-    app.put('/user/:email', async (req, res) => {
+    app.put('/user/:email',  async (req, res) => {
       const email = req.params.email;
       const user = req.body;
       const filter = { email: email }
@@ -220,7 +220,7 @@ async function run() {
 
     })
 
-// update product 
+// update product status 
     app.patch('/all-car/:id', async(req, res)=>{
       const id = req.params.id;
       console.log(id)
@@ -236,6 +236,25 @@ async function run() {
       res.send(result)
 
     })
+
+
+// update product details
+    app.put('/all-car/:id', async(req, res)=>{
+      const id = req.params.id;
+      console.log(id)
+      const car = req.body;
+      const filter = { _id: new ObjectId(id)}
+      const options = {upsert : true}
+      const docUpdate = {
+        $set: car
+      }
+      const result = await carsCollection.updateOne(filter, docUpdate, options)
+      res.send(result)
+
+    })
+
+
+
 
     //get products by Seller email 
     app.get('/post-cars', async (req, res) => {
