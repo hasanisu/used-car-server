@@ -104,9 +104,7 @@ async function run() {
     //get user by email
     app.get('/user/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
-      console.log('check', email)
       const decodedEmail = req.decoded.email;
-      console.log('cehck1', decodedEmail)
       if(email !== decodedEmail){
         return res.status(403).send({message: 'forbidden access'})
       }
@@ -223,7 +221,6 @@ async function run() {
 // update product status 
     app.patch('/all-car/:id', async(req, res)=>{
       const id = req.params.id;
-      console.log(id)
       const status = req.body.productStatus;
       const filter = { _id: new ObjectId(id)}
       const options = {upsert : true}
@@ -241,7 +238,6 @@ async function run() {
 // update product details
     app.put('/all-car/:id', async(req, res)=>{
       const id = req.params.id;
-      console.log(id)
       const car = req.body;
       const filter = { _id: new ObjectId(id)}
       const options = {upsert : true}
@@ -249,6 +245,15 @@ async function run() {
         $set: car
       }
       const result = await carsCollection.updateOne(filter, docUpdate, options)
+      res.send(result)
+
+    })
+
+// Delete product 
+    app.delete('/all-car/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await carsCollection.deleteOne(query)
       res.send(result)
 
     })
@@ -292,14 +297,6 @@ async function run() {
       res.send(result)
     })
 
-
-
-
-    // HOST INFO START FROM HERE
-    // app.post('/host-request', async(req, res) =>{
-    //   const sellerRequest = req.body; 
-    //   const 
-    // })
 
 
 
