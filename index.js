@@ -55,6 +55,7 @@ async function run() {
     const carsCollection = client.db("usedCar").collection("cars")
     const reconditionCategory = client.db("usedCar").collection("category")
     const cartsCollection = client.db("usedCar").collection("carts")
+    const messageCollection = client.db("usedCar").collection("cusMessage")
 
 
 
@@ -295,6 +296,40 @@ async function run() {
       const query = { _id: new ObjectId(id) }
       const result = await cartsCollection.deleteOne(query);
       res.send(result)
+    })
+
+
+    // Customer Query 
+    app.post('/customer-query', async(req, res)=>{
+      const message = req.body;
+      const result = await messageCollection.insertOne(message);
+      res.send(result)
+    })
+
+
+
+    //payment section
+    app.post('/create-payment-intent',  async (req, res) => {
+
+      const price = req.body.price;
+      const amount = parseFloat(price * 100)
+      console.log(amount);
+      try {
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: 'jpy',
+          payment_method_types: ['card'],
+        })
+
+        res.send({ clientSecret: paymentIntent.client_secret })
+
+      } catch (error) {
+        console.log(error)
+      }
+
+
+
     })
 
 
