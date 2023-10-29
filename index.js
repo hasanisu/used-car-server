@@ -6,6 +6,7 @@ const cors = require('cors')
 const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 //middleware
 app.use(cors())
@@ -56,6 +57,7 @@ async function run() {
     const reconditionCategory = client.db("usedCar").collection("category")
     const cartsCollection = client.db("usedCar").collection("carts")
     const messageCollection = client.db("usedCar").collection("cusMessage")
+    const paymentsCollection = client.db("usedCar").collection("payments")
 
 
 
@@ -212,6 +214,15 @@ async function run() {
     })
 
 
+    //get purchase car history
+    app.get('/purchase-history/:email', async (req, res) => {
+      const email = req.params.email;
+      const filter = { buyerEmail: { $eq: email } }
+      const result = await carsCollection.find(filter).toArray()
+      res.send(result)
+    })
+
+
     app.post('/all-car', async (req, res) => {
       const car = req.body;
       const result = await carsCollection.insertOne(car)
@@ -307,12 +318,22 @@ async function run() {
     })
 
 
+    //payment id 
+    app.get('/payment/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await carsCollection.findOne(query)
+      res.send(result)
+
+    })
+
+
 
     //payment section
     app.post('/create-payment-intent',  async (req, res) => {
-
-      const price = req.body.price;
-      const amount = parseFloat(price * 100)
+      const carPurchase = req.body;
+      const price = carPurchase.sellingPrice;
+      const amount = price;
       console.log(amount);
       try {
 
@@ -330,6 +351,23 @@ async function run() {
 
 
 
+    })
+
+    app.post('/payments', async(req, res)=>{
+      const payment = req.body;
+      const result = await paymentsCollection.insertOne(payment)
+      const id = payment.productId;
+      const filter = {_id: new ObjectId(id)}
+      const updateDoc={
+        $set:{
+          paid: true,
+          transactionId: payment.transactionId,
+          buyerEmail: payment.email,
+          purchaseDate: payment.purchaseDate
+        }
+      }
+      const updateResult = await carsCollection.updateOne(filter, updateDoc)
+      res.send(result)
     })
 
 
